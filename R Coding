@@ -1,0 +1,60 @@
+# Use rwunderground package to get access to wunderground
+library('rwunderground')
+
+# Set the API key 
+rwunderground::set_api_key("c5d757ed1907b95c")
+
+# Miramar Station
+Miramar <- set_location(PWS_id = 'KFLMIRAM3')
+MiramarCon <- hourly10day(Miramar,use_metric = FALSE, key = get_api_key(),
+            raw = FALSE, message = TRUE)
+                
+# FortLauderdale Station 
+FortLau <- set_location(PWS_id = 'KFLFORTL1738')
+FortLauCon <- hourly10day(FortLau,use_metric = FALSE, key = get_api_key(),
+                          raw = FALSE, message = TRUE)
+
+# Hollywood Station
+Hollywood <- set_location(PWS_id = 'KFLHOLLY40')
+HollywoodCon <- hourly10day(Hollywood,use_metric = FALSE, key = get_api_key(),
+                            raw = FALSE, message = TRUE)
+
+# Boca Raton Station
+Boca <- set_location(PWS_id = 'KFLBOCAR153')
+BocaCon <- hourly10day(Boca,use_metric = FALSE, key = get_api_key(),
+                        raw = FALSE, message = TRUE)
+
+  
+# Miami Station
+Miami <- set_location(PWS_id = 'KFLMIAMI397')
+MiamiCon <- hourly10day(Miami,use_metric = FALSE, key = get_api_key(),
+                        raw = FALSE, message = TRUE)
+
+# Dataset
+library('caTools')
+dataset = Reduce(function(x, y) merge(x, y, all=TRUE), list(MiramarCon,FortLauCon,HollywoodCon,BocaCon,MiamiCon))
+set.seed(123)
+split = sample.split(dataset, SplitRatio = 0.8)
+training_set = subset(dataset, split == TRUE)
+test_set = subset(dataset, split == FALSE)
+
+
+# Train models
+library(rpart)
+set.seed(123)
+
+model<- rpart(temp~ .-date, data=training_set, method = "class")
+pred =predict(model,test_set, type="class")
+#write.csv(pred, file = "tempoutput.csv")
+write.table(pred, file = "tempoutput.txt", sep = "\t",
+            row.names = FALSE)
+
+model2<- rpart(cond~ .-date, data=training_set, method = "class")
+pred2 =predict(model2,test_set, type="class")
+#write.csv(pred2, file = "condoutput.csv")
+write.table(pred2, file = "condoutput.txt", sep = "\t",
+            row.names = FALSE)
+
+# Here is a list of all functions available in rwunderground package
+ls('package:rwunderground')
+
